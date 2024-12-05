@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "pavanvarikolu"
+      MONGO_INITDB_ROOT_PASSWORD: "OD3QmKf8bb7AlVfZ"
+      MONGO_INITDB_DATABASE: "mydb"
+    networks:
+      - app-network
+    volumes:
+      - mongo-data:/data/db
+
+
+  user-api:
+    build: ./user-api
+    container_name: user-api
+    ports:
+      - "1004:1004"
+    environment:
+      MONGO_URL: "mongodb://pavanvarikolu:OD3QmKf8bb7AlVfZ@mongodb:27017/mydb?authSource=admin&retryWrites=true&w=majority"
+      ADMIN_EMAIL: "pavanvarikolu@gmail.com"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    volumes:
+      - ./user-api:/usr/src/app
+      - /usr/src/app/node_modules
+
+  user-ui:
+    build: ./user-ui
+    container_name: user-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-api
+    networks:
+      - app-network
+    volumes:
+      - ./user-ui:/usr/src/app
+      - /usr/src/app/node_modules
+
+  # admin-api:
+  #   build: ./admin-api
+  #   container_name: admin-api
+  #   ports:
+  #     - "1004:1004"
+  #   environment:
+  #     MONGO_URL: "mongodb://pavanvarikolu:OD3QmKf8bb7AlVfZ@mongodb:27017/mydb?authSource=admin&retryWrites=true&w=majority"
+  #     ADMIN_EMAIL: "pavanvarikolu@gmail.com"
+  #   depends_on:
+  #     - mongodb
+  #   networks:
+  #     - app-network
+  #   volumes:
+  #     - ./admin-api:/usr/src/app
+  #     - /usr/src/app/node_modules
+
+  # admin-ui:
+  #   build: ./admin-ui
+  #   container_name: admin-ui
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - app-network
+  #   volumes:
+  #     - ./admin-ui:/usr/src/app
+  #     - /usr/src/app/node_modules
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
